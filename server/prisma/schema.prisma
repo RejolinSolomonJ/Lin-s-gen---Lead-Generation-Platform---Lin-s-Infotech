@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password_hash String
+  name          String
+  role          String   @default("member")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}
+
+model Lead {
+  id                 String   @id @default(cuid())
+  company_name       String
+  industry           String?
+  city               String?
+  state              String?
+  country            String?
+  region             String   // "local" | "international"
+  website_url        String?
+
+  // Contact info
+  contact_name       String?
+  contact_email      String?
+  contact_phone      String?
+  linkedin_url       String?
+  contact_source     String?
+  contact_confidence String?
+
+  // Classification
+  tab_category       String   // "no_website" | "weak_seo" | "agentic_ai" | "maintenance" | "erp" | "ecommerce" | "legacy_tech" | "rfp_watch"
+  source             String   @default("manual")
+  lead_score         Int      @default(0)
+  pain_points        String?  // Stored as JSON string
+  pitch_angle        String?
+
+  // Outreach
+  outreach_status    String   @default("new")
+
+  notes              String?
+  date_found         DateTime @default(now())
+  last_checked       DateTime @default(now())
+  created_by         String?
+
+  // Tab-specific data as JSON string
+  tab_data           String?  // Stored as JSON string
+
+  // Relations
+  scan_results       ScanResult[]
+  activities         Activity[]
+
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  @@index([tab_category, region])
+  @@index([outreach_status])
+  @@index([lead_score])
+  @@index([city, country])
+  @@index([industry])
+}
+
+model ScanResult {
+  id              String   @id @default(cuid())
+  lead_id         String
+  lead            Lead     @relation(fields: [lead_id], references: [id], onDelete: Cascade)
+  scan_type       String
+  result_data     String   // Stored as JSON string
+  score           Int?
+  scanned_at      DateTime @default(now())
+
+  @@index([lead_id, scan_type])
+}
+
+model Activity {
+  id           String   @id @default(cuid())
+  lead_id      String
+  lead         Lead     @relation(fields: [lead_id], references: [id], onDelete: Cascade)
+  type         String
+  description  String
+  performed_by String?
+  created_at   DateTime @default(now())
+
+  @@index([lead_id])
+  @@index([created_at])
+}
+
+model JobLog {
+  id           String    @id @default(cuid())
+  job_type     String
+  status       String    @default("pending")
+  payload      String?   // Stored as JSON string
+  result       String?   // Stored as JSON string
+  error        String?
+  started_at   DateTime  @default(now())
+  completed_at DateTime?
+
+  @@index([job_type, status])
+  @@index([started_at])
+}

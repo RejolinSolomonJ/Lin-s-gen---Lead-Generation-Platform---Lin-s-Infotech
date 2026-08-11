@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=file:./dev.db
+      - JWT_SECRET=production_jwt_secret_lins_infotech_key
+      - GOOGLE_API_KEY=AIzaSyAu8fUwkKGI8jhBddqMS7RsZAiVCMjRTDA
+      - CLIENT_URL=https://leads.linsinfotech.in
+    volumes:
+      - server_data:/app/prisma
+
+  web:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  server_data:
