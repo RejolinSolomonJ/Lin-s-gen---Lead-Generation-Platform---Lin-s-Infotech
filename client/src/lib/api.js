@@ -43,6 +43,7 @@ export const leadsAPI = {
   delete: (id) => api.delete(`/leads/${id}`),
   export: (params) => api.get('/leads/export', { params, responseType: 'blob' }),
   getStats: () => api.get('/leads/stats'),
+  getTeamPerformance: (timeframe) => api.get('/leads/team-performance', { params: { timeframe } }),
 };
 
 // Scanning

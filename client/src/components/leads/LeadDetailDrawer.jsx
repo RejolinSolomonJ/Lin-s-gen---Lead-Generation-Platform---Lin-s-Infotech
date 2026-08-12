@@ -87,7 +87,7 @@ export default function LeadDetailDrawer({ leadId, onClose, onLeadUpdated, onDel
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
-        className="slide-in-right"
+        className="slide-in-right drawer-panel"
         style={{
           position: 'fixed',
           top: 0,

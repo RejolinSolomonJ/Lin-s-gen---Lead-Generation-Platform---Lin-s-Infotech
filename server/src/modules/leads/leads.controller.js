@@ -107,7 +107,17 @@ async function getStats(req, res, next) {
   }
 }
 
+async function getTeamPerformance(req, res, next) {
+  try {
+    const { timeframe } = req.query;
+    const performance = await leadsService.getTeamPerformance(timeframe);
+    res.json(performance);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getLeads, getLeadById, createLead, updateLead,
-  updateLeadStatus, deleteLead, exportLeads, getStats,
+  updateLeadStatus, deleteLead, exportLeads, getStats, getTeamPerformance,
 };

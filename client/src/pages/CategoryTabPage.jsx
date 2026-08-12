@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { leadsAPI, scanAPI, enrichAPI } from '../lib/api';
 import { TAB_CATEGORIES } from '../lib/constants';
@@ -23,16 +23,47 @@ export default function CategoryTabPage() {
   const [search, setSearch] = useState('');
   const [industry, setIndustry] = useState('');
   const [status, setStatus] = useState('');
+  const [location, setLocation] = useState('');
   const [viewMode, setViewMode] = useState('table'); // 'table' | 'kanban'
 
   // Modals & Drawers
   const [selectedLeadId, setSelectedLeadId] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDiscoverModal, setShowDiscoverModal] = useState(false);
+  const [allLocations, setAllLocations] = useState([]);
+
+  useEffect(() => {
+    loadCategoryLocations();
+  }, [tabCategory, region]);
 
   useEffect(() => {
     loadLeads();
-  }, [tabCategory, region, search, industry, status]);
+  }, [tabCategory, region, search, industry, status, location]);
+
+  const loadCategoryLocations = async () => {
+    try {
+      const { data } = await leadsAPI.getAll({
+        tab_category: tabCategory,
+        region,
+        per_page: 500,
+      });
+      const locSet = new Set();
+      (data.leads || []).forEach((l) => {
+        const loc = [l.city, l.country].filter(Boolean).join(', ');
+        if (loc) {
+          locSet.add(loc);
+        }
+      });
+      setAllLocations(Array.from(locSet).sort());
+    } catch (err) {
+      console.error('Failed to load category locations:', err);
+    }
+  };
+
+  const handleRegionChange = (newRegion) => {
+    setRegion(newRegion);
+    setLocation('');
+  };
 
   const loadLeads = async () => {
     setLoading(true);
@@ -43,6 +74,7 @@ export default function CategoryTabPage() {
         search,
         industry,
         outreach_status: status,
+        location,
         per_page: 100,
       });
       setLeads(data.leads);
@@ -53,6 +85,21 @@ export default function CategoryTabPage() {
       setLoading(false);
     }
   };
+
+  // Derive distinct location choices from currently loaded leads
+  const locationOptions = useMemo(() => {
+    const locSet = new Set();
+    (leads || []).forEach((l) => {
+      if (l.city && l.country) {
+        locSet.add(`${l.city}, ${l.country}`);
+      } else if (l.city) {
+        locSet.add(l.city);
+      } else if (l.country) {
+        locSet.add(l.country);
+      }
+    });
+    return Array.from(locSet).sort();
+  }, [leads]);
 
   const handleStatusChange = async (leadId, newStatus) => {
     try {
@@ -89,6 +136,7 @@ export default function CategoryTabPage() {
         tab_category: tabCategory,
         region,
         outreach_status: status,
+        location,
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -117,6 +165,16 @@ export default function CategoryTabPage() {
     }
   };
 
+  const handleLeadsDiscovered = async (newLeads, query) => {
+    if (query?.city) {
+      setLocation(`${query.city}, ${query.country || 'India'}`);
+    } else {
+      setLocation('');
+    }
+    await loadCategoryLocations();
+    await loadLeads();
+  };
+
   return (
     <div className="fade-in">
       {/* Header Banner */}
@@ -132,7 +190,7 @@ export default function CategoryTabPage() {
                 border: '1px solid #a7f3d0',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
+                justify: 'center',
                 color: '#047857',
                 fontWeight: 800,
                 fontSize: '0.875rem',
@@ -171,13 +229,16 @@ export default function CategoryTabPage() {
       {/* Filter Bar */}
       <FilterBar
         region={region}
-        onRegionChange={setRegion}
+        onRegionChange={handleRegionChange}
         search={search}
         onSearchChange={setSearch}
         industry={industry}
         onIndustryChange={setIndustry}
         status={status}
         onStatusChange={setStatus}
+        location={location}
+        onLocationChange={setLocation}
+        locationOptions={allLocations}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onExport={handleExport}
@@ -235,7 +296,7 @@ export default function CategoryTabPage() {
           initialTabCategory={tabCategory}
           initialRegion={region}
           onClose={() => setShowDiscoverModal(false)}
-          onLeadsDiscovered={() => loadLeads()}
+          onLeadsDiscovered={handleLeadsDiscovered}
         />
       )}
     </div>

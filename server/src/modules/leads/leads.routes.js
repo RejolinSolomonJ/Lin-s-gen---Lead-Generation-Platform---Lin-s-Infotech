@@ -8,6 +8,7 @@ const router = express.Router();
 router.use(authMiddleware);
 
 router.get('/stats', leadsController.getStats);
+router.get('/team-performance', leadsController.getTeamPerformance);
 router.get('/export', leadsController.exportLeads);
 router.get('/', leadsController.getLeads);
 router.get('/:id', leadsController.getLeadById);

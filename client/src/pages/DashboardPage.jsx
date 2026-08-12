@@ -14,9 +14,17 @@ export default function DashboardPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [teamTimeframe, setTeamTimeframe] = useState('week');
+  const [teamData, setTeamData] = useState(null);
+  const [teamLoading, setTeamLoading] = useState(false);
+
   useEffect(() => {
     loadStats();
   }, []);
+
+  useEffect(() => {
+    loadTeamPerformance(teamTimeframe);
+  }, [teamTimeframe]);
 
   const loadStats = async () => {
     try {
@@ -29,11 +37,23 @@ export default function DashboardPage() {
     }
   };
 
+  const loadTeamPerformance = async (tf) => {
+    setTeamLoading(true);
+    try {
+      const { data } = await leadsAPI.getTeamPerformance(tf);
+      setTeamData(data);
+    } catch (err) {
+      console.error('Failed to load team performance:', err);
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div>
         <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', marginBottom: 32 }}>Dashboard</h1>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+        <div className="dashboard-grid-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
           {[1,2,3,4].map(i => (
             <div key={i} className="skeleton" style={{ height: 120, borderRadius: 20 }} />
           ))}
@@ -58,19 +78,19 @@ export default function DashboardPage() {
   return (
     <div className="fade-in">
       {/* Title & Subtitle */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.03em' }}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.03em' }}>
             Dashboard
           </h1>
-          <p style={{ color: '#64748b', marginTop: 2, fontSize: '0.9375rem', fontWeight: 500 }}>
+          <p style={{ color: '#64748b', marginTop: 2, fontSize: '0.875rem', fontWeight: 500 }}>
             Plan, qualify, and track outbound prospect leads with Lin's Gen
           </p>
         </div>
       </div>
 
-      {/* Summary Stat Cards (Donezo Style with Green Hero Card) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginBottom: 28 }}>
+      {/* Summary Stat Cards */}
+      <div className="dashboard-grid-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginBottom: 28 }}>
         {/* Featured Green Total Leads Card */}
         <div className="stat-card stat-card-featured">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -137,7 +157,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Analytics Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 20, marginBottom: 28 }}>
+      <div className="dashboard-grid-charts" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 20, marginBottom: 28 }}>
         {/* Leads by Category Bar Chart */}
         <div className="glass-card" style={{ padding: 24 }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', marginBottom: 20 }}>
@@ -201,7 +221,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Leads & Activity Tables */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div className="dashboard-grid-tables" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         {/* Recent Leads Card */}
         <div className="glass-card" style={{ padding: 24 }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', marginBottom: 16 }}>
@@ -216,6 +236,7 @@ export default function DashboardPage() {
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '10px 14px', borderRadius: 12,
                   background: '#f8fafc', border: '1px solid #e2e8f0',
+                  flexWrap: 'wrap', gap: 8,
                 }}>
                   <div>
                     <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a' }}>{lead.company_name}</div>
@@ -223,9 +244,9 @@ export default function DashboardPage() {
                       {cat?.label || lead.tab_category}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div className={`score-badge ${lead.lead_score >= 70 ? 'score-high' : lead.lead_score >= 40 ? 'score-medium' : 'score-low'}`}
-                      style={{ width: 36, height: 36, fontSize: '0.75rem' }}>
+                      style={{ width: 34, height: 34, fontSize: '0.75rem' }}>
                       {lead.lead_score}
                     </div>
                     <span className={`status-badge status-${lead.outreach_status}`}>
@@ -261,6 +282,145 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Team Member Accounts & Performance Tracker Section */}
+      <div style={{ marginTop: 28 }}>
+        <div className="glass-card" style={{ padding: 24, marginBottom: 24 }}>
+          {/* Section Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 16 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Users size={20} color="#047857" />
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+                  Team Member Performance & Activity Tracker
+                </h3>
+              </div>
+              <p style={{ fontSize: '0.8125rem', color: '#64748b', fontWeight: 500, marginTop: 4 }}>
+                Monitor daily and weekly prospect sourcing, status updates, and activity per team member
+              </p>
+            </div>
+
+            {/* Timeframe Selector Pills */}
+            <div style={{ display: 'flex', background: '#f1f5f9', padding: 4, borderRadius: 12, gap: 4 }}>
+              {[
+                { id: 'today', label: 'Today' },
+                { id: 'week', label: 'This Week' },
+                { id: 'month', label: 'This Month' },
+                { id: 'all', label: 'All Time' },
+              ].map((tf) => (
+                <button
+                  key={tf.id}
+                  onClick={() => setTeamTimeframe(tf.id)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 8,
+                    fontSize: '0.8125rem',
+                    fontWeight: 700,
+                    border: 'none',
+                    cursor: 'pointer',
+                    background: teamTimeframe === tf.id ? '#ffffff' : 'transparent',
+                    color: teamTimeframe === tf.id ? '#047857' : '#64748b',
+                    boxShadow: teamTimeframe === tf.id ? '0 1px 4px rgba(0,0,0,0.06)' : 'none',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {tf.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+
+
+          {/* Team Performance Table */}
+          {teamLoading ? (
+            <div className="skeleton" style={{ height: 160, borderRadius: 12 }} />
+          ) : (
+            <div className="data-table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>TEAM MEMBER</th>
+                    <th>ROLE</th>
+                    <th>LEADS SOURCED ({teamTimeframe.toUpperCase()})</th>
+                    <th>ACTIVITIES LOGGED</th>
+                    <th>MEETINGS BOOKED</th>
+                    <th>DEALS WON</th>
+                    <th>LAST ACTIVE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(teamData?.members || []).map((m) => (
+                    <tr key={m.id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div
+                            style={{
+                              width: 34,
+                              height: 34,
+                              borderRadius: '50%',
+                              background: m.role === 'admin' ? '#047857' : '#0284c7',
+                              color: 'white',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justify: 'center',
+                              fontWeight: 800,
+                              fontSize: '0.8125rem',
+                            }}
+                          >
+                            {m.name.charAt(0)}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.875rem' }}>{m.name}</div>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{m.email}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span
+                          style={{
+                            padding: '3px 10px',
+                            borderRadius: 100,
+                            fontSize: '0.6875rem',
+                            fontWeight: 700,
+                            background: m.role === 'admin' ? '#d1fae5' : '#e0f2fe',
+                            color: m.role === 'admin' ? '#047857' : '#0369a1',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          {m.role}
+                        </span>
+                      </td>
+                      <td>
+                        <strong style={{ fontSize: '0.9375rem', color: '#0f172a' }}>{m.leadsSourced}</strong>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', marginLeft: 4 }}>leads</span>
+                      </td>
+                      <td>
+                        <strong style={{ fontSize: '0.9375rem', color: '#047857' }}>{m.activitiesCount}</strong>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', marginLeft: 4 }}>actions</span>
+                      </td>
+                      <td>
+                        <strong style={{ fontSize: '0.9375rem', color: '#d97706' }}>{m.meetingsBooked}</strong>
+                      </td>
+                      <td>
+                        <strong style={{ fontSize: '0.9375rem', color: '#16a34a' }}>{m.dealsWon}</strong>
+                      </td>
+                      <td>
+                        <div style={{ fontSize: '0.78125rem', color: '#334155', fontWeight: 500 }}>
+                          {m.lastActivityDesc}
+                        </div>
+                        <div style={{ fontSize: '0.6875rem', color: '#94a3b8', marginTop: 2 }}>
+                          {m.lastActivity ? new Date(m.lastActivity).toLocaleString() : 'No activity logged'}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

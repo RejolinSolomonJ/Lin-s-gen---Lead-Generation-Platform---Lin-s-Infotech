@@ -232,8 +232,17 @@ export default function DiscoverLeadsModal({ initialTabCategory, initialRegion, 
                 </div>
               ))}
             </div>
-            <button className="btn btn-secondary btn-sm" style={{ width: '100%', marginTop: 12 }} onClick={onClose}>
-              Done & View Discovered Leads
+            <button
+              className="btn btn-primary btn-sm"
+              style={{ width: '100%', marginTop: 12 }}
+              onClick={() => {
+                if (onLeadsDiscovered && result) {
+                  onLeadsDiscovered(result.leads, result.query);
+                }
+                onClose();
+              }}
+            >
+              ✓ View {result.totalFound} Discovered Lead(s)
             </button>
           </div>
         )}

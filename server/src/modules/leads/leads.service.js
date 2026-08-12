@@ -30,32 +30,78 @@ function parseLead(lead) {
 
 async function getLeads(filters = {}) {
   const {
-    tab_category, region, industry, city, country, state,
+    tab_category, region, industry, city, country, state, location,
     outreach_status, min_score, max_score,
     source, search, sort_by, sort_order,
     page = 1, per_page = 25,
   } = filters;
 
   const where = {};
+  const andConditions = [];
 
   if (tab_category === 'no_website') {
     where.tab_category = 'no_website';
-    where.AND = [
-      {
-        OR: [
-          { website_url: null },
-          { website_url: '' },
-        ],
-      },
-    ];
+    andConditions.push({
+      OR: [
+        { website_url: null },
+        { website_url: '' },
+      ],
+    });
   } else if (tab_category) {
     where.tab_category = tab_category;
   }
-  if (region) where.region = region;
-  if (industry) where.industry = { contains: industry };
-  if (city) where.city = { contains: city };
-  if (country) where.country = { contains: country };
-  if (state) where.state = { contains: state };
+
+  if (industry) {
+    const keywords = industry
+      .split(/[&/]/)
+      .map((s) => s.trim())
+      .filter((s) => s.length >= 3);
+
+    if (keywords.length > 0) {
+      andConditions.push({
+        OR: keywords.flatMap((kw) => [
+          { industry: { contains: kw } },
+          { company_name: { contains: kw } },
+        ]),
+      });
+    }
+  }
+
+  if (location) {
+    const parts = location.split(',').map((s) => s.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      const mainPlace = parts[0];
+      const secondaryPlace = parts[parts.length - 1];
+      andConditions.push({
+        AND: [
+          {
+            OR: [
+              { city: { contains: mainPlace } },
+              { state: { contains: mainPlace } },
+              { country: { contains: mainPlace } },
+            ],
+          },
+          {
+            OR: [
+              { city: { contains: secondaryPlace } },
+              { state: { contains: secondaryPlace } },
+              { country: { contains: secondaryPlace } },
+            ],
+          },
+        ],
+      });
+    } else if (parts.length === 1) {
+      const part = parts[0];
+      andConditions.push({
+        OR: [
+          { city: { contains: part } },
+          { state: { contains: part } },
+          { country: { contains: part } },
+        ],
+      });
+    }
+  }
+
   if (outreach_status) {
     if (Array.isArray(outreach_status)) {
       where.outreach_status = { in: outreach_status };
@@ -72,12 +118,21 @@ async function getLeads(filters = {}) {
   }
 
   if (search) {
-    where.OR = [
-      { company_name: { contains: search } },
-      { contact_name: { contains: search } },
-      { contact_email: { contains: search } },
-      { notes: { contains: search } },
-    ];
+    andConditions.push({
+      OR: [
+        { company_name: { contains: search } },
+        { contact_name: { contains: search } },
+        { contact_email: { contains: search } },
+        { notes: { contains: search } },
+        { city: { contains: search } },
+        { state: { contains: search } },
+        { country: { contains: search } },
+      ],
+    });
+  }
+
+  if (andConditions.length > 0) {
+    where.AND = andConditions;
   }
 
   const orderBy = {};
@@ -274,8 +329,124 @@ async function getStats() {
   };
 }
 
+async function getTeamPerformance(timeframe = 'week') {
+  const now = new Date();
+  let startDate = new Date();
+
+  if (timeframe === 'today') {
+    startDate.setHours(0, 0, 0, 0);
+  } else if (timeframe === 'week') {
+    startDate.setDate(now.getDate() - 7);
+  } else if (timeframe === 'month') {
+    startDate.setMonth(now.getMonth() - 1);
+  } else if (timeframe === 'all') {
+    startDate = new Date(0);
+  } else {
+    startDate.setDate(now.getDate() - 7);
+  }
+
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      created_at: true,
+    },
+    orderBy: { name: 'asc' },
+  });
+
+  const memberStats = await Promise.all(
+    users.map(async (user) => {
+      const [leadsSourced, activitiesCount, meetingsBooked, dealsWon, lastActivity] = await Promise.all([
+        prisma.lead.count({
+          where: {
+            OR: [
+              { created_by: user.id },
+              { created_by: user.email },
+              { created_by: user.name },
+            ],
+            created_at: { gte: startDate },
+          },
+        }),
+        prisma.activity.count({
+          where: {
+            OR: [
+              { performed_by: user.id },
+              { performed_by: user.email },
+              { performed_by: user.name },
+            ],
+            created_at: { gte: startDate },
+          },
+        }),
+        prisma.activity.count({
+          where: {
+            OR: [
+              { performed_by: user.id },
+              { performed_by: user.email },
+              { performed_by: user.name },
+            ],
+            description: { contains: 'meeting_booked' },
+            created_at: { gte: startDate },
+          },
+        }),
+        prisma.activity.count({
+          where: {
+            OR: [
+              { performed_by: user.id },
+              { performed_by: user.email },
+              { performed_by: user.name },
+            ],
+            description: { contains: 'won' },
+            created_at: { gte: startDate },
+          },
+        }),
+        prisma.activity.findFirst({
+          where: {
+            OR: [
+              { performed_by: user.id },
+              { performed_by: user.email },
+              { performed_by: user.name },
+            ],
+          },
+          orderBy: { created_at: 'desc' },
+          select: { description: true, created_at: true },
+        }),
+      ]);
+
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        leadsSourced,
+        activitiesCount,
+        meetingsBooked,
+        dealsWon,
+        lastActivity: lastActivity ? lastActivity.created_at : null,
+        lastActivityDesc: lastActivity ? lastActivity.description : 'No activity logged yet',
+      };
+    })
+  );
+
+  const teamTotals = {
+    totalMembers: users.length,
+    totalSourced: memberStats.reduce((sum, m) => sum + m.leadsSourced, 0),
+    totalActivities: memberStats.reduce((sum, m) => sum + m.activitiesCount, 0),
+    totalMeetings: memberStats.reduce((sum, m) => sum + m.meetingsBooked, 0),
+    totalDealsWon: memberStats.reduce((sum, m) => sum + m.dealsWon, 0),
+  };
+
+  return {
+    timeframe,
+    startDate,
+    teamTotals,
+    members: memberStats,
+  };
+}
+
 module.exports = {
   getLeads, getLeadById, createLead, updateLead,
-  updateLeadStatus, deleteLead, getLeadsForExport, getStats,
+  updateLeadStatus, deleteLead, getLeadsForExport, getStats, getTeamPerformance,
   TAB_CATEGORIES, OUTREACH_STATUSES, REGIONS,
 };

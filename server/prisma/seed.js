@@ -6,18 +6,58 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Seeding SQLite database...\n');
 
-  const passwordHash = await bcrypt.hash('growzylead@366', 12);
+  const adminHash = await bcrypt.hash('admin123', 12);
+  const vaishuHash = await bcrypt.hash('vaishuvishnu2623', 12);
+  const vishnuHash = await bcrypt.hash('vishnuvaishu2326', 12);
+  const guestHash = await bcrypt.hash('guest123', 12);
+
   const admin = await prisma.user.upsert({
     where: { email: 'admin@linsinfotech.in' },
-    update: {},
+    update: { password_hash: adminHash, name: 'Admin', role: 'admin' },
     create: {
       email: 'admin@linsinfotech.in',
-      password_hash: passwordHash,
+      password_hash: adminHash,
       name: 'Admin',
       role: 'admin',
     },
   });
   console.log(`✅ Admin user created: ${admin.email}`);
+
+  const user1 = await prisma.user.upsert({
+    where: { email: 'vaishureddy26096@gmail.com' },
+    update: { password_hash: vaishuHash, name: 'Veera Vasihnavi', role: 'member' },
+    create: {
+      email: 'vaishureddy26096@gmail.com',
+      password_hash: vaishuHash,
+      name: 'Veera Vasihnavi',
+      role: 'member',
+    },
+  });
+  console.log(`✅ Team Member 1 created: ${user1.email} (${user1.name})`);
+
+  const user2 = await prisma.user.upsert({
+    where: { email: 'veeravishnu23112002@gmail.com' },
+    update: { password_hash: vishnuHash, name: 'Veera Vishnu', role: 'member' },
+    create: {
+      email: 'veeravishnu23112002@gmail.com',
+      password_hash: vishnuHash,
+      name: 'Veera Vishnu',
+      role: 'member',
+    },
+  });
+  console.log(`✅ Team Member 2 created: ${user2.email} (${user2.name})`);
+
+  const user3 = await prisma.user.upsert({
+    where: { email: 'guest@linsinfotech.in' },
+    update: { password_hash: guestHash, name: 'Guest User', role: 'guest' },
+    create: {
+      email: 'guest@linsinfotech.in',
+      password_hash: guestHash,
+      name: 'Guest User',
+      role: 'guest',
+    },
+  });
+  console.log(`✅ Guest user created: ${user3.email} (${user3.name})`);
 
   const sampleLeads = [
     {

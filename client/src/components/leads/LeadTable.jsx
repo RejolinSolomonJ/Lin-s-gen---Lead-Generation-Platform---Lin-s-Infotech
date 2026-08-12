@@ -142,7 +142,7 @@ export default function LeadTable({
 
   return (
     <div className="glass-card" style={{ overflow: 'hidden' }}>
-      <div style={{ overflowX: 'auto' }}>
+      <div className="data-table-container" style={{ overflowX: 'auto' }}>
         <table className="data-table">
           <thead>
             <tr>

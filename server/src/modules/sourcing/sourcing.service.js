@@ -106,13 +106,11 @@ async function discoverRealLeads({ industry, city, country, tab_category, region
 
       const createdLead = await leadsService.createLead(leadData);
 
-      // If lead has a website, run live real-time site scan right now!
+      // If lead has a website, launch live site scan asynchronously in background so response returns instantly
       if (createdLead.website_url) {
-        try {
-          await scannerService.runFullScan(createdLead.id);
-        } catch (scanErr) {
-          console.error(`[Sourcing] Live scan error for ${createdLead.website_url}:`, scanErr.message);
-        }
+        scannerService.runFullScan(createdLead.id).catch((scanErr) => {
+          console.error(`[Sourcing] Live background scan error for ${createdLead.website_url}:`, scanErr.message);
+        });
       }
 
       // Run real lead scoring
