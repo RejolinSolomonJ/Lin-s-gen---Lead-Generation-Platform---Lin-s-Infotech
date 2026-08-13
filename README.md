@@ -30,11 +30,6 @@ npm run dev
 cd client
 npm install
 npm run dev
-```
-
-### Default Login
-- Email: `admin@linsinfotech.in`
-- Password: `admin123`
 
 ## Tech Stack
 - **Frontend**: React 18 + Vite + Tailwind CSS v4
