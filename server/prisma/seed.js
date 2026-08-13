@@ -6,9 +6,10 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Seeding SQLite database...\n');
 
-  const adminHash = await bcrypt.hash('admin123', 12);
-  const vaishuHash = await bcrypt.hash('vaishuvishnu2623', 12);
-  const vishnuHash = await bcrypt.hash('vishnuvaishu2326', 12);
+  const adminPassword = process.env.ADMIN_PASSWORD || 'ceorejo@366';
+  const adminHash = await bcrypt.hash(adminPassword, 12);
+  const vaishuHash = await bcrypt.hash(process.env.MEMBER1_PASSWORD || 'vaishuvishnu2623', 12);
+  const vishnuHash = await bcrypt.hash(process.env.MEMBER2_PASSWORD || 'vishnuvaishu2326', 12);
   const guestHash = await bcrypt.hash('guest123', 12);
 
   const admin = await prisma.user.upsert({
@@ -24,22 +25,22 @@ async function main() {
   console.log(`✅ Admin user created: ${admin.email}`);
 
   const user1 = await prisma.user.upsert({
-    where: { email: 'vaishureddy26096@gmail.com' },
-    update: { password_hash: vaishuHash, name: 'Veera Vasihnavi', role: 'member' },
+    where: { email: 'vaishnavi@linsinfotech.in' },
+    update: { password_hash: vaishuHash, name: 'Veera Vaishnavi', role: 'member' },
     create: {
-      email: 'vaishureddy26096@gmail.com',
+      email: 'vaishnavi@linsinfotech.in',
       password_hash: vaishuHash,
-      name: 'Veera Vasihnavi',
+      name: 'Veera Vaishnavi',
       role: 'member',
     },
   });
   console.log(`✅ Team Member 1 created: ${user1.email} (${user1.name})`);
 
   const user2 = await prisma.user.upsert({
-    where: { email: 'veeravishnu23112002@gmail.com' },
+    where: { email: 'vishnu@linsinfotech.in' },
     update: { password_hash: vishnuHash, name: 'Veera Vishnu', role: 'member' },
     create: {
-      email: 'veeravishnu23112002@gmail.com',
+      email: 'vishnu@linsinfotech.in',
       password_hash: vishnuHash,
       name: 'Veera Vishnu',
       role: 'member',

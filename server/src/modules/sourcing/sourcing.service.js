@@ -68,16 +68,14 @@ async function discoverRealLeads({ industry, city, country, tab_category, region
       // Check detection logic per tab
       const hasWebsite = !!place.websiteUrl;
       let targetTabCategory = tab_category || (hasWebsite ? 'weak_seo' : 'no_website');
-      let pitchAngle = null;
 
-      // STRICT FILTERING FOR TAB 1 (No Website):
       // If searching under "No Website", and the place has a website, move it to Weak SEO category instead!
       if (tab_category === 'no_website' && hasWebsite) {
         targetTabCategory = 'weak_seo';
-        pitchAngle = 'Website exists but invisible on Google — SEO retainer';
-      } else if (tab_category === 'no_website') {
-        pitchAngle = 'No web presence — full website build';
       }
+
+      // Build rich category-tailored attributes for all 8 categories
+      const categoryAttrs = buildCategoryAttributes(targetTabCategory, place, industry);
 
       // Create base real lead record
       const leadData = {
@@ -93,15 +91,12 @@ async function discoverRealLeads({ industry, city, country, tab_category, region
         contact_source: place.phoneNumber ? 'public_directory' : null,
         contact_confidence: place.phoneNumber ? 'verified' : 'guessed',
         tab_category: targetTabCategory,
-        pitch_angle: pitchAngle,
+        pitch_angle: categoryAttrs.pitchAngle,
+        pain_points: categoryAttrs.painPoints,
         source: place.source || apiSourceUsed,
         outreach_status: 'new',
         notes: place.address ? `Address: ${place.address}` : 'Real-time prospect discovered via live discovery',
-        tab_data: {
-          has_physical_location: !!place.address,
-          primary_social_link: place.socialUrl || null,
-          employee_count_estimate: Math.floor(Math.random() * 15) + 3,
-        },
+        tab_data: categoryAttrs.tabData,
       };
 
       const createdLead = await leadsService.createLead(leadData);
