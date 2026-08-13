@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String   @id @default(cuid())
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
   email         String   @unique
   password_hash String
   name          String
@@ -18,7 +18,7 @@ model User {
 }
 
 model Lead {
-  id                 String   @id @default(cuid())
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
   company_name       String
   industry           String?
   city               String?
@@ -68,8 +68,8 @@ model Lead {
 }
 
 model ScanResult {
-  id              String   @id @default(cuid())
-  lead_id         String
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  lead_id         String   @db.ObjectId
   lead            Lead     @relation(fields: [lead_id], references: [id], onDelete: Cascade)
   scan_type       String
   result_data     String   // Stored as JSON string
@@ -80,8 +80,8 @@ model ScanResult {
 }
 
 model Activity {
-  id           String   @id @default(cuid())
-  lead_id      String
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  lead_id      String   @db.ObjectId
   lead         Lead     @relation(fields: [lead_id], references: [id], onDelete: Cascade)
   type         String
   description  String
@@ -93,7 +93,7 @@ model Activity {
 }
 
 model JobLog {
-  id           String    @id @default(cuid())
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
   job_type     String
   status       String    @default("pending")
   payload      String?   // Stored as JSON string
