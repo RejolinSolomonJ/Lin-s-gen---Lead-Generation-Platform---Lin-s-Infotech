@@ -165,12 +165,37 @@ export default function CategoryTabPage() {
     }
   };
 
+  const [discoveryAlert, setDiscoveryAlert] = useState(null);
+
   const handleLeadsDiscovered = async (newLeads, query) => {
     if (query?.city) {
       setLocation(`${query.city}, ${query.country || 'India'}`);
     } else {
       setLocation('');
     }
+
+    const activeCount = (newLeads || []).filter((l) => l.tab_category === tabCategory).length;
+    const routedCount = (newLeads || []).length - activeCount;
+
+    if (routedCount > 0) {
+      setDiscoveryAlert({
+        type: 'info',
+        message: `Discovered ${(newLeads || []).length} leads! ${routedCount} leads with websites were automatically routed to other categories (like 'Weak SEO').`
+      });
+    } else if ((newLeads || []).length > 0) {
+      setDiscoveryAlert({
+        type: 'success',
+        message: `Successfully discovered and loaded ${(newLeads || []).length} new leads under ${currentTab.label}!`
+      });
+    } else {
+      setDiscoveryAlert({
+        type: 'warning',
+        message: 'No new unique leads discovered. Try searching a different industry or city!'
+      });
+    }
+
+    setTimeout(() => setDiscoveryAlert(null), 10000);
+
     await loadCategoryLocations();
     await loadLeads();
   };
@@ -225,6 +250,36 @@ export default function CategoryTabPage() {
           </div>
         )}
       </div>
+
+      {/* Discovery Alert Toast */}
+      {discoveryAlert && (
+        <div
+          style={{
+            padding: '12px 16px',
+            borderRadius: 14,
+            marginBottom: 20,
+            background: discoveryAlert.type === 'success' ? '#ecfdf5' : discoveryAlert.type === 'info' ? '#f0f9ff' : '#fffbeb',
+            border: `1px solid ${discoveryAlert.type === 'success' ? '#a7f3d0' : discoveryAlert.type === 'info' ? '#bae6fd' : '#fde68a'}`,
+            color: discoveryAlert.type === 'success' ? '#047857' : discoveryAlert.type === 'info' ? '#0369a1' : '#b45309',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+            animation: 'fadeIn 0.2s ease',
+          }}
+        >
+          <span>{discoveryAlert.type === 'success' ? '🚀' : discoveryAlert.type === 'info' ? 'ℹ️' : '⚠️'}</span>
+          <div style={{ flex: 1 }}>{discoveryAlert.message}</div>
+          <button
+            onClick={() => setDiscoveryAlert(null)}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '1.125rem', color: 'inherit', padding: '0 4px' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Filter Bar */}
       <FilterBar
