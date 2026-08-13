@@ -12,8 +12,8 @@ services:
       - NODE_ENV=production
       - PORT=3001
       - DATABASE_URL=file:./dev.db
-      - JWT_SECRET=production_jwt_secret_lins_infotech_key
-      - GOOGLE_API_KEY=AIzaSyAu8fUwkKGI8jhBddqMS7RsZAiVCMjRTDA
+      - JWT_SECRET=${JWT_SECRET}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - CLIENT_URL=https://leads.linsinfotech.in
     volumes:
       - server_data:/app/prisma
