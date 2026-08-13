@@ -60,8 +60,8 @@ async function getLeads(filters = {}) {
     if (keywords.length > 0) {
       andConditions.push({
         OR: keywords.flatMap((kw) => [
-          { industry: { contains: kw } },
-          { company_name: { contains: kw } },
+          { industry: { contains: kw, mode: 'insensitive' } },
+          { company_name: { contains: kw, mode: 'insensitive' } },
         ]),
       });
     }
@@ -76,16 +76,16 @@ async function getLeads(filters = {}) {
         AND: [
           {
             OR: [
-              { city: { contains: mainPlace } },
-              { state: { contains: mainPlace } },
-              { country: { contains: mainPlace } },
+              { city: { contains: mainPlace, mode: 'insensitive' } },
+              { state: { contains: mainPlace, mode: 'insensitive' } },
+              { country: { contains: mainPlace, mode: 'insensitive' } },
             ],
           },
           {
             OR: [
-              { city: { contains: secondaryPlace } },
-              { state: { contains: secondaryPlace } },
-              { country: { contains: secondaryPlace } },
+              { city: { contains: secondaryPlace, mode: 'insensitive' } },
+              { state: { contains: secondaryPlace, mode: 'insensitive' } },
+              { country: { contains: secondaryPlace, mode: 'insensitive' } },
             ],
           },
         ],
@@ -94,9 +94,9 @@ async function getLeads(filters = {}) {
       const part = parts[0];
       andConditions.push({
         OR: [
-          { city: { contains: part } },
-          { state: { contains: part } },
-          { country: { contains: part } },
+          { city: { contains: part, mode: 'insensitive' } },
+          { state: { contains: part, mode: 'insensitive' } },
+          { country: { contains: part, mode: 'insensitive' } },
         ],
       });
     }
@@ -120,13 +120,13 @@ async function getLeads(filters = {}) {
   if (search) {
     andConditions.push({
       OR: [
-        { company_name: { contains: search } },
-        { contact_name: { contains: search } },
-        { contact_email: { contains: search } },
-        { notes: { contains: search } },
-        { city: { contains: search } },
-        { state: { contains: search } },
-        { country: { contains: search } },
+        { company_name: { contains: search, mode: 'insensitive' } },
+        { contact_name: { contains: search, mode: 'insensitive' } },
+        { contact_email: { contains: search, mode: 'insensitive' } },
+        { notes: { contains: search, mode: 'insensitive' } },
+        { city: { contains: search, mode: 'insensitive' } },
+        { state: { contains: search, mode: 'insensitive' } },
+        { country: { contains: search, mode: 'insensitive' } },
       ],
     });
   }
