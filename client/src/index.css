@@ -565,8 +565,8 @@ html, body {
   .sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    width: 270px !important;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    width: 280px !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
   }
 
   .sidebar.sidebar-mobile-open {
@@ -575,13 +575,14 @@ html, body {
 
   .main-content-wrapper {
     margin-left: 0 !important;
+    width: 100% !important;
   }
 
   /* Top Header Mobile adjustments */
   .top-header {
-    padding: 0 16px !important;
+    padding: 0 14px !important;
     height: 64px !important;
-    gap: 12px;
+    gap: 8px;
   }
 
   .top-header-search {
@@ -589,7 +590,7 @@ html, body {
   }
 
   .main-container {
-    padding: 16px 16px !important;
+    padding: 14px 12px !important;
   }
 
   /* Dashboard Stats Grid Mobile */
@@ -601,12 +602,21 @@ html, body {
   .filter-controls-row {
     flex-direction: column;
     align-items: stretch !important;
+    gap: 10px !important;
   }
 
   .filter-actions-row {
     width: 100%;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+  }
+
+  .filter-actions-row::-webkit-scrollbar {
+    display: none;
   }
 
   /* Kanban Board Mobile Layout */
@@ -617,19 +627,35 @@ html, body {
   /* Data table scroll touch */
   .data-table-container {
     -webkit-overflow-scrolling: touch;
+    overflow-x: auto !important;
+    width: 100%;
+  }
+
+  .data-table th, .data-table td {
+    padding: 10px 12px !important;
+    font-size: 0.8125rem !important;
   }
 
   /* Drawer Mobile width */
   .drawer-panel {
     width: 100vw !important;
     max-width: 100vw !important;
+    border-radius: 20px 20px 0 0 !important;
   }
 
   /* Modal content mobile padding */
   .modal-content {
     width: 95vw !important;
-    padding: 20px !important;
+    max-width: 95vw !important;
+    padding: 18px !important;
     border-radius: 18px !important;
+    max-height: 90vh !important;
+  }
+
+  /* Form grid 1-column stack on mobile */
+  .modal-content form > div[style*="gridTemplateColumns"],
+  .modal-content form div[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
   }
 }
 
@@ -637,15 +663,22 @@ html, body {
   .btn {
     padding: 8px 12px;
     font-size: 0.8125rem;
+    height: 38px;
   }
 
   .btn-sm {
     padding: 5px 10px;
     font-size: 0.75rem;
+    height: 34px;
   }
 
   .stat-card {
     padding: 1rem 1.15rem;
+  }
+
+  .region-toggle button {
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
   }
 }
 
