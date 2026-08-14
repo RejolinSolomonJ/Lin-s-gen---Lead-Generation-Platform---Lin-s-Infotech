@@ -6,7 +6,7 @@ import {
   Building, CheckCircle, AlertTriangle, FileText, Send, Trash2
 } from 'lucide-react';
 
-export default function LeadDetailDrawer({ leadId, onClose, onLeadUpdated, onDeleteLead }) {
+export default function LeadDetailDrawer({ leadId, onClose, onLeadUpdated, onDeleteLead, onOpenOutreach }) {
   const [lead, setLead] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
@@ -190,6 +190,18 @@ export default function LeadDetailDrawer({ leadId, onClose, onLeadUpdated, onDel
                 <Zap size={14} />
                 {enriching ? 'Enriching...' : 'Enrich Contact'}
               </button>
+              {onOpenOutreach && (
+                <button
+                  className="btn btn-primary btn-sm"
+                  style={{ flex: 1 }}
+                  onClick={() => onOpenOutreach(lead)}
+                  disabled={!lead.contact_email && !lead.contact_phone}
+                  title={(!lead.contact_email && !lead.contact_phone) ? "No contact information available" : "Send email and WhatsApp outreach"}
+                >
+                  <Send size={14} />
+                  Send Outreach
+                </button>
+              )}
             </div>
 
             {/* Pain Points */}

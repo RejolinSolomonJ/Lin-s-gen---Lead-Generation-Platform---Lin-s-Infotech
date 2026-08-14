@@ -1,6 +1,6 @@
 import React from 'react';
 import { OUTREACH_STATUSES } from '../../lib/constants';
-import { ExternalLink, Phone, Mail, ChevronRight, Zap, RefreshCw } from 'lucide-react';
+import { ExternalLink, Phone, Mail, ChevronRight, Zap, RefreshCw, Send } from 'lucide-react';
 
 export default function LeadTable({
   leads,
@@ -9,6 +9,7 @@ export default function LeadTable({
   onStatusChange,
   onQuickScan,
   onQuickEnrich,
+  onOpenOutreach,
 }) {
   const renderTabDataColumns = (lead) => {
     const data = lead.tab_data || {};
@@ -247,6 +248,16 @@ export default function LeadTable({
                     >
                       <Zap size={14} />
                     </button>
+                    {(lead.contact_email || lead.contact_phone) && onOpenOutreach && (
+                      <button
+                        className="btn btn-ghost btn-icon"
+                        title="Send Outreach"
+                        onClick={() => onOpenOutreach(lead)}
+                        style={{ color: 'var(--color-primary-600)' }}
+                      >
+                        <Send size={14} />
+                      </button>
+                    )}
                     <button
                       className="btn btn-ghost btn-icon"
                       title="View Details"

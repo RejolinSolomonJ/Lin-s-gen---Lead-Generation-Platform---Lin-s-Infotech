@@ -44,6 +44,8 @@ export const leadsAPI = {
   export: (params) => api.get('/leads/export', { params, responseType: 'blob' }),
   getStats: () => api.get('/leads/stats'),
   getTeamPerformance: (timeframe) => api.get('/leads/team-performance', { params: { timeframe } }),
+  sendOutreach: (id, data) => api.post(`/leads/${id}/outreach`, data),
+  getOutreachConfig: () => api.get('/leads/outreach/config'),
 };
 
 // Scanning

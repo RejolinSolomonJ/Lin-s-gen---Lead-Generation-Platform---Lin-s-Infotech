@@ -1,4 +1,5 @@
 const leadsService = require('./leads.service');
+const outreachService = require('./outreach.service');
 const { stringify } = require('csv-stringify/sync');
 
 async function getLeads(req, res, next) {
@@ -117,7 +118,31 @@ async function getTeamPerformance(req, res, next) {
   }
 }
 
+async function sendOutreach(req, res, next) {
+  try {
+    const { emailContent, whatsappContent, subject } = req.body;
+    const result = await leadsService.sendLeadOutreach(
+      req.params.id,
+      { emailContent, whatsappContent, subject },
+      req.user
+    );
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+function getOutreachConfig(req, res, next) {
+  try {
+    const status = outreachService.getConfigStatus();
+    res.json(status);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getLeads, getLeadById, createLead, updateLead,
   updateLeadStatus, deleteLead, exportLeads, getStats, getTeamPerformance,
+  sendOutreach, getOutreachConfig,
 };

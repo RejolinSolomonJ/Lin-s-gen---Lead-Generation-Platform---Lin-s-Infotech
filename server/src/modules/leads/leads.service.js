@@ -1,4 +1,5 @@
 const prisma = require('../../config/database');
+const outreachService = require('./outreach.service');
 
 const TAB_CATEGORIES = [
   'no_website', 'weak_seo', 'agentic_ai', 'maintenance',
@@ -445,8 +446,59 @@ async function getTeamPerformance(timeframe = 'week') {
   };
 }
 
+async function sendLeadOutreach(id, { emailContent, whatsappContent, subject }, user) {
+  const lead = await getLeadById(id);
+  if (!lead) {
+    throw new Error('Lead not found');
+  }
+
+  // 1. Send Email (if email address exists)
+  let emailResult = null;
+  if (lead.contact_email && emailContent) {
+    emailResult = await outreachService.sendEmail({
+      to: lead.contact_email,
+      subject: subject || `Outreach for ${lead.company_name}`,
+      html: emailContent,
+    });
+  }
+
+  // 2. Send WhatsApp (if phone number exists)
+  let whatsappResult = null;
+  if (lead.contact_phone && whatsappContent) {
+    whatsappResult = await outreachService.sendWhatsApp({
+      to: lead.contact_phone,
+      message: whatsappContent,
+    });
+  }
+
+  // 3. Update outreach status to 'contacted'
+  const updatedLead = await prisma.lead.update({
+    where: { id },
+    data: { outreach_status: 'contacted' },
+  });
+
+  // 4. Log outreach activity
+  await prisma.activity.create({
+    data: {
+      lead_id: id,
+      type: 'outreach_sent',
+      description: `Sent outreach email to ${lead.contact_email || 'N/A'} and WhatsApp to ${lead.contact_phone || 'N/A'}`,
+      performed_by: user?.id || null,
+    },
+  });
+
+  return {
+    lead: parseLead(updatedLead),
+    emailSent: !!emailResult,
+    whatsappSent: !!whatsappResult,
+    emailMethod: emailResult?.method || 'none',
+    whatsappMethod: whatsappResult?.method || 'none',
+  };
+}
+
 module.exports = {
   getLeads, getLeadById, createLead, updateLead,
   updateLeadStatus, deleteLead, getLeadsForExport, getStats, getTeamPerformance,
+  sendLeadOutreach,
   TAB_CATEGORIES, OUTREACH_STATUSES, REGIONS,
 };

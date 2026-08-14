@@ -8,6 +8,7 @@ import KanbanBoard from '../components/leads/KanbanBoard';
 import LeadDetailDrawer from '../components/leads/LeadDetailDrawer';
 import AddLeadModal from '../components/leads/AddLeadModal';
 import DiscoverLeadsModal from '../components/leads/DiscoverLeadsModal';
+import OutreachModal from '../components/leads/OutreachModal';
 import { Globe, RefreshCw, Zap, Sparkles } from 'lucide-react';
 
 export default function CategoryTabPage() {
@@ -30,6 +31,7 @@ export default function CategoryTabPage() {
   const [selectedLeadId, setSelectedLeadId] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDiscoverModal, setShowDiscoverModal] = useState(false);
+  const [activeOutreachLead, setActiveOutreachLead] = useState(null);
   const [allLocations, setAllLocations] = useState([]);
 
   useEffect(() => {
@@ -317,6 +319,7 @@ export default function CategoryTabPage() {
           onStatusChange={handleStatusChange}
           onQuickScan={handleQuickScan}
           onQuickEnrich={handleQuickEnrich}
+          onOpenOutreach={(lead) => setActiveOutreachLead(lead)}
         />
       ) : (
         <KanbanBoard
@@ -333,6 +336,7 @@ export default function CategoryTabPage() {
           onClose={() => setSelectedLeadId(null)}
           onLeadUpdated={loadLeads}
           onDeleteLead={handleDeleteLead}
+          onOpenOutreach={(lead) => setActiveOutreachLead(lead)}
         />
       )}
 
@@ -352,6 +356,15 @@ export default function CategoryTabPage() {
           initialRegion={region}
           onClose={() => setShowDiscoverModal(false)}
           onLeadsDiscovered={handleLeadsDiscovered}
+        />
+      )}
+
+      {/* Outreach Campaign Modal */}
+      {activeOutreachLead && (
+        <OutreachModal
+          lead={activeOutreachLead}
+          onClose={() => setActiveOutreachLead(null)}
+          onOutreachSent={loadLeads}
         />
       )}
     </div>
