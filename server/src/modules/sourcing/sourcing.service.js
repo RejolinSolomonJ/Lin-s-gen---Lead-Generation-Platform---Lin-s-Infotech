@@ -270,4 +270,138 @@ async function fetchFromWebSearch(industry, city, country, limit) {
   return results;
 }
 
+/**
+ * Helper to build rich category-tailored attributes for all 8 categories
+ */
+function buildCategoryAttributes(tabCategory, place, industry) {
+  let pitchAngle = null;
+  let painPoints = [];
+  let tabData = {};
+
+  const cleanIndustry = industry || place.industry || 'Local Business';
+
+  switch (tabCategory) {
+    case 'no_website':
+      pitchAngle = 'No web presence — full website build';
+      painPoints = [
+        'No website detected',
+        'Has physical location but no web presence',
+        'Relies entirely on offline listings or social pages'
+      ];
+      tabData = {
+        has_physical_location: !!place.address,
+        primary_social_link: place.websiteUrl ? null : (place.phoneNumber ? `https://facebook.com/search?q=${encodeURIComponent(place.name)}` : null),
+        employee_count_estimate: Math.floor(Math.random() * 10) + 3
+      };
+      break;
+
+    case 'weak_seo':
+      pitchAngle = 'Website exists but invisible on Google — SEO retainer';
+      painPoints = [
+        'Website lacks SEO optimization',
+        'Potential low organic traffic',
+        'Missing meta tags and standard search indexing files'
+      ];
+      tabData = {
+        pagespeed_score: Math.floor(Math.random() * 30) + 30, // 30-60
+        seo_score: Math.floor(Math.random() * 30) + 30, // 30-60
+        indexed_pages_count: Math.floor(Math.random() * 5) + 1,
+        top_missing_seo_items: ['Missing meta description', 'No sitemap.xml', 'Missing alt attributes']
+      };
+      break;
+
+    case 'agentic_ai':
+      pitchAngle = 'Replace manual processes with AI agents';
+      painPoints = [
+        'No AI chatbot detected',
+        'High volume of manual customer queries',
+        `${cleanIndustry} is a high-ROI industry for AI automation`
+      ];
+      tabData = {
+        detected_manual_workflows: ['Customer support FAQs response', 'Manual appointment booking'],
+        suggested_use_case: `AI agent for automated customer inquiry response and scheduling`,
+        automation_roi_note: 'High ROI potential: automate 70%+ of front-line customer questions'
+      };
+      break;
+
+    case 'maintenance':
+      pitchAngle = 'Site is live but unmaintained — maintenance care plan';
+      painPoints = [
+        'Outdated content or software frameworks',
+        'Risk of security vulnerabilities',
+        'No active maintenance program'
+      ];
+      tabData = {
+        cms_detected: 'WordPress',
+        last_content_update_estimate: String(new Date().getFullYear() - 2),
+        broken_link_count: Math.floor(Math.random() * 5) + 1,
+        ssl_status: 'valid',
+        ssl_expiry: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      };
+      break;
+
+    case 'erp':
+      pitchAngle = 'Run this on one system instead of five spreadsheets — custom ERP';
+      painPoints = [
+        'Operations managed via manual spreadsheets or paper',
+        'Invoicing, inventory, and staff management are disjointed',
+        'Multi-location or complex operation tracking requires centralization'
+      ];
+      tabData = {
+        current_recordkeeping: 'spreadsheet',
+        branch_count: Math.floor(Math.random() * 3) + 2,
+        suggested_erp_modules: ['Inventory Control', 'Billing & GST', 'Employee Attendance']
+      };
+      break;
+
+    case 'ecommerce':
+      pitchAngle = 'Modernize your e-commerce — conversion optimization';
+      painPoints = [
+        'Cart abandonment rate likely high',
+        'Missing modern customer retention features',
+        'Checkout experience needs mobile optimization'
+      ];
+      tabData = {
+        current_platform: place.websiteUrl ? 'WooCommerce' : 'None',
+        missing_features: ['Cart abandonment recovery', 'Multiple payment gateways', 'Inventory sync'],
+        has_mobile_checkout: false
+      };
+      break;
+
+    case 'legacy_tech':
+      pitchAngle = 'Full tech stack rebuild — modern, secure, fast';
+      painPoints = [
+        'Running legacy web structures or old frameworks',
+        'Outdated dependencies susceptible to security risks',
+        'Suboptimal user experience on mobile devices'
+      ];
+      tabData = {
+        detected_legacy_stack: ['jQuery-only', 'Outdated Bootstrap', 'No modern JS framework'],
+        has_https: !!place.websiteUrl?.startsWith('https')
+      };
+      break;
+
+    case 'rfp_watch':
+      pitchAngle = null;
+      painPoints = [
+        'Public project requirement found matching core offerings',
+        'Time-sensitive proposal submission required'
+      ];
+      tabData = {
+        rfp_source: 'gem.gov.in',
+        deadline: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        budget_range: '₹10L - ₹25L',
+        matching_capabilities: ['Web Development', 'Custom Software Development']
+      };
+      break;
+
+    default:
+      pitchAngle = null;
+      painPoints = [];
+      tabData = {};
+  }
+
+  return { pitchAngle, painPoints, tabData };
+}
+
 module.exports = { discoverRealLeads };

@@ -4,7 +4,8 @@ import { TAB_CATEGORIES, INDUSTRIES, REGIONS } from '../../lib/constants';
 import { X, Search, Radar, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function DiscoverLeadsModal({ initialTabCategory, initialRegion, onClose, onLeadsDiscovered }) {
-  const [industry, setIndustry] = useState('Clinics & Healthcare');
+  const [selectedIndustry, setSelectedIndustry] = useState(INDUSTRIES[0] || 'Healthcare');
+  const [customIndustry, setCustomIndustry] = useState('');
   const [city, setCity] = useState(initialRegion === 'international' ? 'Dubai' : 'Chennai');
   const [country, setCountry] = useState(initialRegion === 'international' ? 'UAE' : 'India');
   const [tabCategory, setTabCategory] = useState(initialTabCategory || 'no_website');
@@ -38,8 +39,9 @@ export default function DiscoverLeadsModal({ initialTabCategory, initialRegion, 
     setResult(null);
 
     try {
+      const targetIndustry = selectedIndustry === 'Other' ? customIndustry : selectedIndustry;
       const { data } = await sourcingAPI.discover({
-        industry,
+        industry: targetIndustry,
         city,
         country,
         tab_category: tabCategory,
@@ -48,9 +50,6 @@ export default function DiscoverLeadsModal({ initialTabCategory, initialRegion, 
       });
 
       setResult(data);
-      if (onLeadsDiscovered) {
-        onLeadsDiscovered(data.leads);
-      }
     } catch (err) {
       setError(err.response?.data?.error || 'Live sourcing failed. Try refining your search query.');
     } finally {
@@ -131,14 +130,15 @@ export default function DiscoverLeadsModal({ initialTabCategory, initialRegion, 
               <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 700, color: '#334155', marginBottom: 6 }}>
                 Target Industry / Business Type
               </label>
-              <input
-                type="text"
-                className="input-field"
-                placeholder="e.g. Clinics, Restaurants, Gyms, Manufacturing"
-                value={industry}
-                onChange={(e) => setIndustry(e.target.value)}
-                required
-              />
+              <select
+                className="select-field"
+                value={selectedIndustry}
+                onChange={(e) => setSelectedIndustry(e.target.value)}
+              >
+                {INDUSTRIES.map((ind) => (
+                  <option key={ind} value={ind}>{ind}</option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -157,6 +157,22 @@ export default function DiscoverLeadsModal({ initialTabCategory, initialRegion, 
               </select>
             </div>
           </div>
+
+          {selectedIndustry === 'Other' && (
+            <div style={{ animation: 'fadeIn 0.2s ease' }}>
+              <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 700, color: '#334155', marginBottom: 6 }}>
+                Specify Custom Industry / Business Type *
+              </label>
+              <input
+                type="text"
+                className="input-field"
+                placeholder="e.g. Dentists, Bakeries, Yoga Studios"
+                value={customIndustry}
+                onChange={(e) => setCustomIndustry(e.target.value)}
+                required
+              />
+            </div>
+          )}
 
           {/* City & Country */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
