@@ -20,16 +20,22 @@ export default function FilterBar({
   onAddLead,
   onDiscoverLeads,
   totalCount,
+  hasEmail = '',
+  onHasEmailChange,
+  hasPhone = '',
+  onHasPhoneChange,
 }) {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  const hasActiveFilters = Boolean(search || industry || status || location);
+  const hasActiveFilters = Boolean(search || industry || status || location || hasEmail || hasPhone);
 
   const clearAllFilters = () => {
     onSearchChange('');
     onIndustryChange('');
     onStatusChange('');
     onLocationChange && onLocationChange('');
+    onHasEmailChange && onHasEmailChange('');
+    onHasPhoneChange && onHasPhoneChange('');
   };
 
   return (
@@ -203,6 +209,34 @@ export default function FilterBar({
                   {st.label}
                 </option>
               ))}
+            </select>
+          </div>
+
+          {/* Email Filter */}
+          <div style={{ flex: '1 1 160px', minWidth: 140 }}>
+            <select
+              className="select-field"
+              style={{ height: 38, fontSize: '0.8125rem' }}
+              value={hasEmail}
+              onChange={(e) => onHasEmailChange && onHasEmailChange(e.target.value)}
+            >
+              <option value="">All (Email Status)</option>
+              <option value="true">📧 Has Email</option>
+              <option value="false">❌ No Email</option>
+            </select>
+          </div>
+
+          {/* Phone Filter */}
+          <div style={{ flex: '1 1 160px', minWidth: 140 }}>
+            <select
+              className="select-field"
+              style={{ height: 38, fontSize: '0.8125rem' }}
+              value={hasPhone}
+              onChange={(e) => onHasPhoneChange && onHasPhoneChange(e.target.value)}
+            >
+              <option value="">All (Phone Status)</option>
+              <option value="true">📞 Has Phone</option>
+              <option value="false">❌ No Phone</option>
             </select>
           </div>
 

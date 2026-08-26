@@ -35,9 +35,11 @@ async function getLeads(filters = {}) {
     outreach_status, min_score, max_score,
     source, search, sort_by, sort_order,
     page = 1, per_page = 25,
+    has_email, has_phone,
   } = filters;
 
   const where = {};
+  if (region) where.region = region;
   const andConditions = [];
 
   if (tab_category === 'no_website') {
@@ -128,6 +130,38 @@ async function getLeads(filters = {}) {
         { city: { contains: search, mode: 'insensitive' } },
         { state: { contains: search, mode: 'insensitive' } },
         { country: { contains: search, mode: 'insensitive' } },
+      ],
+    });
+  }
+
+  if (has_email === 'true' || has_email === true) {
+    andConditions.push({
+      AND: [
+        { contact_email: { not: null } },
+        { contact_email: { not: '' } },
+      ],
+    });
+  } else if (has_email === 'false' || has_email === false) {
+    andConditions.push({
+      OR: [
+        { contact_email: null },
+        { contact_email: '' },
+      ],
+    });
+  }
+
+  if (has_phone === 'true' || has_phone === true) {
+    andConditions.push({
+      AND: [
+        { contact_phone: { not: null } },
+        { contact_phone: { not: '' } },
+      ],
+    });
+  } else if (has_phone === 'false' || has_phone === false) {
+    andConditions.push({
+      OR: [
+        { contact_phone: null },
+        { contact_phone: '' },
       ],
     });
   }
@@ -266,16 +300,133 @@ async function deleteLead(id) {
 }
 
 async function getLeadsForExport(filters = {}) {
-  const { tab_category, region, outreach_status, min_score, max_score } = filters;
+  const {
+    tab_category, region, outreach_status, min_score, max_score,
+    industry, location, search, has_email, has_phone
+  } = filters;
 
   const where = {};
-  if (tab_category) where.tab_category = tab_category;
+  const andConditions = [];
+
+  if (tab_category === 'no_website') {
+    where.tab_category = 'no_website';
+    andConditions.push({
+      OR: [
+        { website_url: null },
+        { website_url: '' },
+      ],
+    });
+  } else if (tab_category) {
+    where.tab_category = tab_category;
+  }
+
   if (region) where.region = region;
   if (outreach_status) where.outreach_status = outreach_status;
   if (min_score !== undefined || max_score !== undefined) {
     where.lead_score = {};
     if (min_score !== undefined) where.lead_score.gte = parseInt(min_score, 10);
     if (max_score !== undefined) where.lead_score.lte = parseInt(max_score, 10);
+  }
+
+  if (industry) {
+    const keywords = industry
+      .split(/[&/]/)
+      .map((s) => s.trim())
+      .filter((s) => s.length >= 3);
+
+    if (keywords.length > 0) {
+      andConditions.push({
+        OR: keywords.flatMap((kw) => [
+          { industry: { contains: kw, mode: 'insensitive' } },
+          { company_name: { contains: kw, mode: 'insensitive' } },
+        ]),
+      });
+    }
+  }
+
+  if (location) {
+    const parts = location.split(',').map((s) => s.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      const mainPlace = parts[0];
+      const secondaryPlace = parts[parts.length - 1];
+      andConditions.push({
+        AND: [
+          {
+            OR: [
+              { city: { contains: mainPlace, mode: 'insensitive' } },
+              { state: { contains: mainPlace, mode: 'insensitive' } },
+              { country: { contains: mainPlace, mode: 'insensitive' } },
+            ],
+          },
+          {
+            OR: [
+              { city: { contains: secondaryPlace, mode: 'insensitive' } },
+              { state: { contains: secondaryPlace, mode: 'insensitive' } },
+              { country: { contains: secondaryPlace, mode: 'insensitive' } },
+            ],
+          },
+        ],
+      });
+    } else if (parts.length === 1) {
+      const part = parts[0];
+      andConditions.push({
+        OR: [
+          { city: { contains: part, mode: 'insensitive' } },
+          { state: { contains: part, mode: 'insensitive' } },
+          { country: { contains: part, mode: 'insensitive' } },
+        ],
+      });
+    }
+  }
+
+  if (search) {
+    andConditions.push({
+      OR: [
+        { company_name: { contains: search, mode: 'insensitive' } },
+        { contact_name: { contains: search, mode: 'insensitive' } },
+        { contact_email: { contains: search, mode: 'insensitive' } },
+        { notes: { contains: search, mode: 'insensitive' } },
+        { city: { contains: search, mode: 'insensitive' } },
+        { state: { contains: search, mode: 'insensitive' } },
+        { country: { contains: search, mode: 'insensitive' } },
+      ],
+    });
+  }
+
+  if (has_email === 'true' || has_email === true) {
+    andConditions.push({
+      AND: [
+        { contact_email: { not: null } },
+        { contact_email: { not: '' } },
+      ],
+    });
+  } else if (has_email === 'false' || has_email === false) {
+    andConditions.push({
+      OR: [
+        { contact_email: null },
+        { contact_email: '' },
+      ],
+    });
+  }
+
+  if (has_phone === 'true' || has_phone === true) {
+    andConditions.push({
+      AND: [
+        { contact_phone: { not: null } },
+        { contact_phone: { not: '' } },
+      ],
+    });
+  } else if (has_phone === 'false' || has_phone === false) {
+    andConditions.push({
+      OR: [
+        { contact_phone: null },
+        { contact_phone: '' },
+      ],
+    });
+  }
+
+  if (andConditions.length > 0) {
+    where.AND = andConditions;
   }
 
   const rawLeads = await prisma.lead.findMany({

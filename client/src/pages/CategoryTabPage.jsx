@@ -25,6 +25,8 @@ export default function CategoryTabPage() {
   const [industry, setIndustry] = useState('');
   const [status, setStatus] = useState('');
   const [location, setLocation] = useState('');
+  const [hasEmail, setHasEmail] = useState('');
+  const [hasPhone, setHasPhone] = useState('');
   const [viewMode, setViewMode] = useState('table'); // 'table' | 'kanban'
 
   // Modals & Drawers
@@ -40,7 +42,7 @@ export default function CategoryTabPage() {
 
   useEffect(() => {
     loadLeads();
-  }, [tabCategory, region, search, industry, status, location]);
+  }, [tabCategory, region, search, industry, status, location, hasEmail, hasPhone]);
 
   const loadCategoryLocations = async () => {
     try {
@@ -77,6 +79,8 @@ export default function CategoryTabPage() {
         industry,
         outreach_status: status,
         location,
+        has_email: hasEmail || undefined,
+        has_phone: hasPhone || undefined,
         per_page: 100,
       });
       setLeads(data.leads);
@@ -139,6 +143,8 @@ export default function CategoryTabPage() {
         region,
         outreach_status: status,
         location,
+        has_email: hasEmail || undefined,
+        has_phone: hasPhone || undefined,
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -302,6 +308,10 @@ export default function CategoryTabPage() {
         onAddLead={() => setShowAddModal(true)}
         onDiscoverLeads={() => setShowDiscoverModal(true)}
         totalCount={totalCount}
+        hasEmail={hasEmail}
+        onHasEmailChange={setHasEmail}
+        hasPhone={hasPhone}
+        onHasPhoneChange={setHasPhone}
       />
 
       {/* Content View: Table or Kanban */}
