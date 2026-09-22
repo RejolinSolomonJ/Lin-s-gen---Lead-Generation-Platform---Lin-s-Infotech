@@ -2,10 +2,11 @@ const authService = require('./auth.service');
 
 async function login(req, res, next) {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
+    email = email.trim();
     const result = await authService.login(email, password);
     res.json(result);
   } catch (err) {
