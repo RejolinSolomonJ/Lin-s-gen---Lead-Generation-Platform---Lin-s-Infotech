@@ -12,22 +12,22 @@ async function main() {
   
   const user1 = await prisma.user.upsert({
     where: { email: email1 },
-    update: { password_hash: hash, name: 'Naveed Sales', role: 'member' },
+    update: { password_hash: hash, name: 'Naveed', role: 'member' },
     create: {
       email: email1,
       password_hash: hash,
-      name: 'Naveed Sales',
+      name: 'Naveed',
       role: 'member',
     },
   });
   
   const user2 = await prisma.user.upsert({
     where: { email: email2 },
-    update: { password_hash: hash, name: 'Naveed Sales', role: 'member' },
+    update: { password_hash: hash, name: 'Naveed', role: 'member' },
     create: {
       email: email2,
       password_hash: hash,
-      name: 'Naveed Sales',
+      name: 'Naveed',
       role: 'member',
     },
   });
